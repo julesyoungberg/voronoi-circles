@@ -10,15 +10,21 @@ fn rand2(c: Vector2<f64>) -> Vector2<f64> {
     return pt2(p.x.abs(), p.y.abs());
 }
 
+fn animate_point(p: Vector2<f64>, time: f32) -> Vector2<f64> {
+    let x = time as f64 + p.x * 2.0 * PI as f64;
+    let y = time as f64 + p.y * 2.0 * PI as f64;
+    return pt2(x.sin() * 0.5 + 0.5, y.sin() * 0.5 + 0.5);
+}
+
 // generate a grid of random points
-pub fn get_points() -> Vec<Vec<Vector2<f64>>> {
+pub fn get_points(time: f32) -> Vec<Vec<Vector2<f64>>> {
     let mut points = vec![vec![pt2(0.0 as f64, 0.0 as f64); GRID_RES]; GRID_RES];
 
     for y in 0..GRID_RES {
         for x in 0..GRID_RES {
             let bin_coord = pt2(x as f64, y as f64);
-            let point = bin_coord + rand2(bin_coord);
-            points[x][y] = point;
+            let point = rand2(bin_coord);
+            points[x][y] = bin_coord + animate_point(point, time);
         }
     }
 
@@ -82,6 +88,7 @@ fn scale_veroni_value(v: f64, size: f64) -> f32 {
     return mapped as f32;
 }
 
+// draw the veroni points as circles with the corresponding radius
 pub fn draw_circles(
     points: &Vec<Vec<Vector2<f64>>>,
     radiuses: &Vec<Vec<f64>>,

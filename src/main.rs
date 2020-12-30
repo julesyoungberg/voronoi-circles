@@ -12,7 +12,7 @@ fn view(app: &App, frame: Frame) {
     let draw = app.draw();
     draw.background().color(BLACK);
 
-    let points = veroni::get_points();
+    let points = veroni::get_points(app.time);
     let radiuses = veroni::get_radiuses(&points);
     veroni::draw_circles(&points, &radiuses, &draw, SIZE as f64);
 
