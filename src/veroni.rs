@@ -1,6 +1,6 @@
 use nannou::prelude::*;
 
-pub static GRID_RES: usize = 3;
+pub static GRID_RES: usize = 20;
 
 // classic GLSL-style random vector generator
 fn rand2(c: Vector2<f64>) -> Vector2<f64> {
@@ -55,7 +55,7 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>, draw: &Draw, size: f64) -> 
         for x in 0..GRID_RES {
             let center_point = points[x][y];
             let mut radius: f64 = 0.0;
-            let mut nearest_point = center_point;
+            // let mut nearest_point = center_point;
 
             // search neighbors for nearest
             for yoff in 0..3 {
@@ -82,31 +82,21 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>, draw: &Draw, size: f64) -> 
 
                     if radius == 0.0 || dist < radius {
                         radius = dist;
-                        nearest_point = neighbor;
+                        // nearest_point = neighbor;
                     }
                 }
             }
 
             radiuses[x as usize][y as usize] = radius;
 
-            let mapped = map_veroni_point(center_point, size);
-            let csize = scale_veroni_value(radius, size);
-
-            let cx = (center_point.x % 1.0).abs() * 255.0;
-            let cy = (center_point.y % 1.0).abs() * 255.0;
-            let color = rgb(0, cx as u8, cy as u8);
-
-            draw.ellipse().xy(mapped).wh(pt2(csize, csize)).color(color);
-
-            if x == 1 && y == 0 {
-                let start = map_veroni_point(center_point, size);
-                let end = map_veroni_point(nearest_point, size);
-                draw.line()
-                    .start(start)
-                    .end(end)
-                    .weight(1.0)
-                    .color(rgb(255 as u8, 0, 0));
-            }
+            // draw line to nearest
+            // let start = map_veroni_point(center_point, size);
+            // let end = map_veroni_point(nearest_point, size);
+            // draw.line()
+            //     .start(start)
+            //     .end(end)
+            //     .weight(1.0)
+            //     .color(rgb(255 as u8, 0, 0));
         }
     }
 
@@ -124,11 +114,11 @@ pub fn draw_circles(
         for x in 0..GRID_RES {
             let point = points[x as usize][y as usize];
             let mapped = map_veroni_point(point, size);
-            let radius = scale_veroni_value(radiuses[x as usize][y as usize], size);
+            let radius = scale_veroni_value(radiuses[x as usize][y as usize], size) * 2.0;
 
             let x = (point.x % 1.0).abs() * 255.0;
             let y = (point.y % 1.0).abs() * 255.0;
-            let color = rgb(0, x as u8, y as u8);
+            let color = rgb(x as u8, y as u8, (radius * 4.0) as u8);
 
             draw.ellipse()
                 .xy(mapped)

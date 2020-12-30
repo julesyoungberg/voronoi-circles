@@ -13,8 +13,8 @@ fn view(app: &App, frame: Frame) {
     draw.background().color(BLACK);
 
     let points = veroni::get_points(app.time);
-    veroni::get_radiuses(&points, &draw, SIZE as f64);
-    // veroni::draw_circles(&points, &radiuses, &draw, SIZE as f64);
+    let radi = veroni::get_radiuses(&points, &draw, SIZE as f64);
+    veroni::draw_circles(&points, &radi, &draw, SIZE as f64);
     // veroni::draw_grid(&draw, SIZE as f64);
 
     draw.to_frame(app, &frame).unwrap();
