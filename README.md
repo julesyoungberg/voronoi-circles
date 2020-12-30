@@ -4,6 +4,6 @@ The [veroni algorithm](https://thebookofshaders.com/12/) in rust and [nannou](ht
 
 ## demos
 
-[video](https://youtu.be/uAKV4KjE56U)
+[video](https://youtu.be/gXj0hB7GKL8)
 
 ![](images/demo.png)
