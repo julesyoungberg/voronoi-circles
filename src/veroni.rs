@@ -1,6 +1,6 @@
 use nannou::prelude::*;
 
-pub static GRID_RES: usize = 8;
+pub static GRID_RES: usize = 3;
 
 // classic GLSL-style random vector generator
 fn rand2(c: Vector2<f64>) -> Vector2<f64> {
@@ -31,14 +31,31 @@ pub fn get_points(time: f32) -> Vec<Vec<Vector2<f64>>> {
     return points;
 }
 
+fn map_veroni_point(point: Vector2<f64>, size: f64) -> Vector2 {
+    let res = GRID_RES as f64;
+    let normalized = pt2(point.x as f64 / res, point.y as f64 / res);
+    let mapped = pt2(
+        normalized.x * size - size / 2.0,
+        normalized.y * size - size / 2.0,
+    );
+    return pt2(mapped.x as f32, mapped.y as f32);
+}
+
+fn scale_veroni_value(v: f64, size: f64) -> f32 {
+    let normalized = v / GRID_RES as f64;
+    let mapped = normalized * size;
+    return mapped as f32;
+}
+
 // compute the maximum radius for each point such that the circle is contained in the cell
-pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>) -> Vec<Vec<f64>> {
+pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>, draw: &Draw, size: f64) -> Vec<Vec<f64>> {
     let mut radiuses = vec![vec![0.0 as f64; GRID_RES]; GRID_RES];
 
     for y in 0..GRID_RES {
         for x in 0..GRID_RES {
             let center_point = points[x][y];
             let mut radius: f64 = 0.0;
+            let mut nearest_point = center_point;
 
             // search neighbors for nearest
             for yoff in 0..2 {
@@ -57,35 +74,37 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>) -> Vec<Vec<f64>> {
 
                     let diff = center_point - neighbor;
                     let hyp = diff.x * diff.x + diff.y * diff.y;
-                    let dist = hyp.sqrt();
+                    let dist = hyp.sqrt() / 2.0;
 
                     if radius == 0.0 || dist < radius {
                         radius = dist;
+                        nearest_point = neighbor;
                     }
                 }
             }
 
             radiuses[x as usize][y as usize] = radius;
+
+            let mapped = map_veroni_point(center_point, size);
+            let csize = scale_veroni_value(radius, size);
+
+            let x = (center_point.x % 1.0).abs() * 255.0;
+            let y = (center_point.y % 1.0).abs() * 255.0;
+            let color = rgb(0, x as u8, y as u8);
+
+            draw.ellipse().xy(mapped).wh(pt2(csize, csize)).color(color);
+
+            let start = map_veroni_point(center_point, size);
+            let end = map_veroni_point(nearest_point, size);
+            draw.line()
+                .start(start)
+                .end(end)
+                .weight(1.0)
+                .color(rgb(255 as u8, 0, 0));
         }
     }
 
     return radiuses;
-}
-
-fn map_veroni_point(point: &Vector2<f64>, size: f64) -> Vector2 {
-    let res = GRID_RES as f64;
-    let normalized = pt2(point.x as f64 / res, point.y as f64 / res);
-    let mapped = pt2(
-        normalized.x * size - size / 2.0,
-        normalized.y * size - size / 2.0,
-    );
-    return pt2(mapped.x as f32, mapped.y as f32);
-}
-
-fn scale_veroni_value(v: f64, size: f64) -> f32 {
-    let normalized = v / GRID_RES as f64;
-    let mapped = normalized * size;
-    return mapped as f32;
 }
 
 // draw the veroni points as circles with the corresponding radius
@@ -98,17 +117,43 @@ pub fn draw_circles(
     for y in 0..GRID_RES {
         for x in 0..GRID_RES {
             let point = points[x as usize][y as usize];
-            let mapped = map_veroni_point(&point, size);
-            let radius = scale_veroni_value(radiuses[x as usize][y as usize], size) / 2.0;
+            let mapped = map_veroni_point(point, size);
+            let radius = scale_veroni_value(radiuses[x as usize][y as usize], size);
 
             let x = (point.x % 1.0).abs() * 255.0;
             let y = (point.y % 1.0).abs() * 255.0;
-            let color = rgb(x as u8, y as u8, 0);
+            let color = rgb(0, x as u8, y as u8);
 
             draw.ellipse()
                 .xy(mapped)
                 .wh(pt2(radius, radius))
                 .color(color);
         }
+    }
+}
+
+pub fn draw_grid(draw: &Draw, size: f64) {
+    let res = GRID_RES as f64;
+
+    // draw horizontal lines
+    for y in 1..GRID_RES {
+        let start = map_veroni_point(pt2(0.0, y as f64), size);
+        let end = map_veroni_point(pt2(res, y as f64), size);
+        draw.line()
+            .start(start)
+            .end(end)
+            .weight(2.0)
+            .color(rgb(255 as u8, 0, 0));
+    }
+
+    // draw vertical lines
+    for x in 1..GRID_RES {
+        let start = map_veroni_point(pt2(x as f64, 0.0), size);
+        let end = map_veroni_point(pt2(x as f64, res), size);
+        draw.line()
+            .start(start)
+            .end(end)
+            .weight(2.0)
+            .color(rgb(255 as u8, 0, 0));
     }
 }
