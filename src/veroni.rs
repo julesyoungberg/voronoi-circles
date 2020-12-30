@@ -65,3 +65,38 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>) -> Vec<Vec<f64>> {
 
     return radiuses;
 }
+
+fn map_veroni_point(point: &Vector2<f64>, size: f64) -> Vector2 {
+    let res = GRID_RES as f64;
+    let normalized = pt2(point.x as f64 / res, point.y as f64 / res);
+    let mapped = pt2(
+        normalized.x * size - size / 2.0,
+        normalized.y * size - size / 2.0,
+    );
+    return pt2(mapped.x as f32, mapped.y as f32);
+}
+
+fn scale_veroni_value(v: f64, size: f64) -> f32 {
+    let normalized = v / GRID_RES as f64;
+    let mapped = normalized * size;
+    return mapped as f32;
+}
+
+pub fn draw_circles(
+    points: &Vec<Vec<Vector2<f64>>>,
+    radiuses: &Vec<Vec<f64>>,
+    draw: &Draw,
+    size: f64,
+) {
+    for y in 0..GRID_RES {
+        for x in 0..GRID_RES {
+            let mapped = map_veroni_point(&points[x as usize][y as usize], size);
+            let radius = scale_veroni_value(radiuses[x as usize][y as usize], size) / 2.0;
+
+            draw.ellipse()
+                .xy(mapped)
+                .wh(pt2(radius, radius))
+                .color(STEELBLUE);
+        }
+    }
+}
