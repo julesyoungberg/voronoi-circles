@@ -58,19 +58,23 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>, draw: &Draw, size: f64) -> 
             let mut nearest_point = center_point;
 
             // search neighbors for nearest
-            for yoff in 0..2 {
+            for yoff in 0..3 {
                 let yoffset = yoff - 1;
 
-                for xoff in 0..2 {
+                for xoff in 0..3 {
                     let xoffset = xoff - 1;
 
                     if yoffset == 0 && xoffset == 0 {
                         continue;
                     }
 
-                    let nx = (x as i32 + xoffset) % GRID_RES as i32;
-                    let ny = (y as i32 + yoffset) % GRID_RES as i32;
-                    let neighbor = points[nx.abs() as usize][ny.abs() as usize];
+                    let nx = x as i32 + xoffset;
+                    let ny = y as i32 + yoffset;
+                    if nx < 0 || ny < 0 || nx >= GRID_RES as i32 || ny >= GRID_RES as i32 {
+                        continue;
+                    }
+
+                    let neighbor = points[nx as usize][ny as usize];
 
                     let diff = center_point - neighbor;
                     let hyp = diff.x * diff.x + diff.y * diff.y;
@@ -88,19 +92,21 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>, draw: &Draw, size: f64) -> 
             let mapped = map_veroni_point(center_point, size);
             let csize = scale_veroni_value(radius, size);
 
-            let x = (center_point.x % 1.0).abs() * 255.0;
-            let y = (center_point.y % 1.0).abs() * 255.0;
-            let color = rgb(0, x as u8, y as u8);
+            let cx = (center_point.x % 1.0).abs() * 255.0;
+            let cy = (center_point.y % 1.0).abs() * 255.0;
+            let color = rgb(0, cx as u8, cy as u8);
 
             draw.ellipse().xy(mapped).wh(pt2(csize, csize)).color(color);
 
-            let start = map_veroni_point(center_point, size);
-            let end = map_veroni_point(nearest_point, size);
-            draw.line()
-                .start(start)
-                .end(end)
-                .weight(1.0)
-                .color(rgb(255 as u8, 0, 0));
+            if x == 1 && y == 0 {
+                let start = map_veroni_point(center_point, size);
+                let end = map_veroni_point(nearest_point, size);
+                draw.line()
+                    .start(start)
+                    .end(end)
+                    .weight(1.0)
+                    .color(rgb(255 as u8, 0, 0));
+            }
         }
     }
 
