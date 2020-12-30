@@ -1,3 +1,9 @@
 # veroni circles
 
-This is a basic implementation of the veroni algorithm in rust and [nannou](https://github.com/nannou-org/nannou).
+The [veroni algorithm](https://thebookofshaders.com/12/) in rust and [nannou](https://github.com/nannou-org/nannou).
+
+## demos
+
+[video](https://youtu.be/uAKV4KjE56U)
+
+![](images/demo.png)
