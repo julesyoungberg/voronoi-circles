@@ -97,13 +97,18 @@ pub fn draw_circles(
 ) {
     for y in 0..GRID_RES {
         for x in 0..GRID_RES {
-            let mapped = map_veroni_point(&points[x as usize][y as usize], size);
+            let point = points[x as usize][y as usize];
+            let mapped = map_veroni_point(&point, size);
             let radius = scale_veroni_value(radiuses[x as usize][y as usize], size) / 2.0;
+
+            let x = (point.x % 1.0).abs() * 255.0;
+            let y = (point.y % 1.0).abs() * 255.0;
+            let color = rgb(x as u8, y as u8, 0);
 
             draw.ellipse()
                 .xy(mapped)
                 .wh(pt2(radius, radius))
-                .color(STEELBLUE);
+                .color(color);
         }
     }
 }
