@@ -1,5 +1,5 @@
 [package]
-name = "veroni_circles"
+name = "voronoi_circles"
 version = "0.1.0"
 authors = ["Jules Youngberg <julesdayoungberg@gmail.com>"]
 edition = "2018"

@@ -31,7 +31,7 @@ pub fn get_points(time: f32) -> Vec<Vec<Vector2<f64>>> {
     return points;
 }
 
-fn map_veroni_point(point: Vector2<f64>, size: f64) -> Vector2 {
+fn map_voronoi_point(point: Vector2<f64>, size: f64) -> Vector2 {
     let res = GRID_RES as f64;
     let normalized = pt2(point.x as f64 / res, point.y as f64 / res);
     let mapped = pt2(
@@ -41,7 +41,7 @@ fn map_veroni_point(point: Vector2<f64>, size: f64) -> Vector2 {
     return pt2(mapped.x as f32, mapped.y as f32);
 }
 
-fn scale_veroni_value(v: f64, size: f64) -> f32 {
+fn scale_voronoi_value(v: f64, size: f64) -> f32 {
     let normalized = v / GRID_RES as f64;
     let mapped = normalized * size;
     return mapped as f32;
@@ -90,8 +90,8 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>, draw: &Draw, size: f64) -> 
             radiuses[x as usize][y as usize] = radius;
 
             // draw line to nearest
-            // let start = map_veroni_point(center_point, size);
-            // let end = map_veroni_point(nearest_point, size);
+            // let start = map_voronoi_point(center_point, size);
+            // let end = map_voronoi_point(nearest_point, size);
             // draw.line()
             //     .start(start)
             //     .end(end)
@@ -103,7 +103,7 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>, draw: &Draw, size: f64) -> 
     return radiuses;
 }
 
-// draw the veroni points as circles with the corresponding radius
+// draw the voronoi points as circles with the corresponding radius
 pub fn draw_circles(
     points: &Vec<Vec<Vector2<f64>>>,
     radiuses: &Vec<Vec<f64>>,
@@ -113,8 +113,8 @@ pub fn draw_circles(
     for y in 0..GRID_RES {
         for x in 0..GRID_RES {
             let point = points[x as usize][y as usize];
-            let mapped = map_veroni_point(point, size);
-            let radius = scale_veroni_value(radiuses[x as usize][y as usize], size) * 2.0;
+            let mapped = map_voronoi_point(point, size);
+            let radius = scale_voronoi_value(radiuses[x as usize][y as usize], size) * 2.0;
 
             let x = (point.x % 1.0).abs() * 255.0;
             let y = (point.y % 1.0).abs() * 255.0;
@@ -133,8 +133,8 @@ pub fn draw_grid(draw: &Draw, size: f64) {
 
     // draw horizontal lines
     for y in 1..GRID_RES {
-        let start = map_veroni_point(pt2(0.0, y as f64), size);
-        let end = map_veroni_point(pt2(res, y as f64), size);
+        let start = map_voronoi_point(pt2(0.0, y as f64), size);
+        let end = map_voronoi_point(pt2(res, y as f64), size);
         draw.line()
             .start(start)
             .end(end)
@@ -144,8 +144,8 @@ pub fn draw_grid(draw: &Draw, size: f64) {
 
     // draw vertical lines
     for x in 1..GRID_RES {
-        let start = map_veroni_point(pt2(x as f64, 0.0), size);
-        let end = map_veroni_point(pt2(x as f64, res), size);
+        let start = map_voronoi_point(pt2(x as f64, 0.0), size);
+        let end = map_voronoi_point(pt2(x as f64, res), size);
         draw.line()
             .start(start)
             .end(end)

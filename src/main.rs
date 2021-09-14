@@ -1,6 +1,6 @@
 use nannou::prelude::*;
 
-mod veroni;
+mod voronoi;
 
 static SIZE: u32 = 1024;
 
@@ -12,10 +12,10 @@ fn view(app: &App, frame: Frame) {
     let draw = app.draw();
     draw.background().color(BLACK);
 
-    let points = veroni::get_points(app.time);
-    let radi = veroni::get_radiuses(&points, &draw, SIZE as f64);
-    veroni::draw_circles(&points, &radi, &draw, SIZE as f64);
-    // veroni::draw_grid(&draw, SIZE as f64);
+    let points = voronoi::get_points(app.time);
+    let radi = voronoi::get_radiuses(&points, &draw, SIZE as f64);
+    voronoi::draw_circles(&points, &radi, &draw, SIZE as f64);
+    // voronoi::draw_grid(&draw, SIZE as f64);
 
     draw.to_frame(app, &frame).unwrap();
 }
