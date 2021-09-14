@@ -1,6 +1,6 @@
-# veroni circles
+# voronoi circles
 
-The [veroni algorithm](https://thebookofshaders.com/12/) in rust and [nannou](https://github.com/nannou-org/nannou).
+The [voronoi algorithm](https://thebookofshaders.com/12/) in rust and [nannou](https://github.com/nannou-org/nannou).
 
 ## demos
 
