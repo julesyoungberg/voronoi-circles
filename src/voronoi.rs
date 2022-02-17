@@ -1,7 +1,5 @@
 use nannou::prelude::*;
 
-pub static GRID_RES: usize = 20;
-
 // classic GLSL-style random vector generator
 fn rand2(c: Vector2<f64>) -> Vector2<f64> {
     let x = c.dot(pt2(127.1, 311.7)).sin();
@@ -17,43 +15,49 @@ fn animate_point(p: Vector2<f64>, time: f32) -> Vector2<f64> {
 }
 
 // generate a grid of random points
-pub fn get_points(time: f32) -> Vec<Vec<Vector2<f64>>> {
-    let mut points = vec![vec![pt2(0.0 as f64, 0.0 as f64); GRID_RES]; GRID_RES];
+pub fn get_points(time: f32, grid_res_x: usize, grid_res_y: usize) -> Vec<Vec<Vector2<f64>>> {
+    let mut points = vec![vec![pt2(0.0 as f64, 0.0 as f64); grid_res_x]; grid_res_y];
 
-    for y in 0..GRID_RES {
-        for x in 0..GRID_RES {
+    for y in 0..grid_res_y {
+        for x in 0..grid_res_x {
             let bin_coord = pt2(x as f64, y as f64);
             let point = rand2(bin_coord);
-            points[x][y] = bin_coord + animate_point(point, time);
+            points[y][x] = bin_coord + animate_point(point, time);
         }
     }
 
     return points;
 }
 
-fn map_voronoi_point(point: Vector2<f64>, size: f64) -> Vector2 {
-    let res = GRID_RES as f64;
-    let normalized = pt2(point.x as f64 / res, point.y as f64 / res);
+fn map_voronoi_point(
+    point: Vector2<f64>,
+    width: u32,
+    height: u32,
+    grid_res_x: usize,
+    grid_res_y: usize,
+) -> Vector2 {
+    let normalized = pt2(
+        point.x as f64 / grid_res_x as f64,
+        point.y as f64 / grid_res_y as f64,
+    );
     let mapped = pt2(
-        normalized.x * size - size / 2.0,
-        normalized.y * size - size / 2.0,
+        normalized.x * width as f64 - width as f64 / 2.0,
+        normalized.y * height as f64 - height as f64 / 2.0,
     );
     return pt2(mapped.x as f32, mapped.y as f32);
 }
 
-fn scale_voronoi_value(v: f64, size: f64) -> f32 {
-    let normalized = v / GRID_RES as f64;
-    let mapped = normalized * size;
-    return mapped as f32;
-}
-
 // compute the maximum radius for each point such that the circle is contained in the cell
-pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>) -> Vec<Vec<f64>> {
-    let mut radiuses = vec![vec![0.0 as f64; GRID_RES]; GRID_RES];
+pub fn get_radiuses(
+    points: &Vec<Vec<Vector2<f64>>>,
+    grid_res_x: usize,
+    grid_res_y: usize,
+) -> Vec<Vec<f64>> {
+    let mut radiuses = vec![vec![0.0 as f64; grid_res_x]; grid_res_y];
 
-    for y in 0..GRID_RES {
-        for x in 0..GRID_RES {
-            let center_point = points[x][y];
+    for y in 0..grid_res_y {
+        for x in 0..grid_res_x {
+            let center_point = points[y][x];
             let mut radius: f64 = 0.0;
             // let mut nearest_point = center_point;
 
@@ -70,11 +74,11 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>) -> Vec<Vec<f64>> {
 
                     let nx = x as i32 + xoffset;
                     let ny = y as i32 + yoffset;
-                    if nx < 0 || ny < 0 || nx >= GRID_RES as i32 || ny >= GRID_RES as i32 {
+                    if nx < 0 || ny < 0 || nx >= grid_res_x as i32 || ny >= grid_res_y as i32 {
                         continue;
                     }
 
-                    let neighbor = points[nx as usize][ny as usize];
+                    let neighbor = points[ny as usize][nx as usize];
 
                     let diff = center_point - neighbor;
                     let hyp = diff.x * diff.x + diff.y * diff.y;
@@ -87,7 +91,7 @@ pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>) -> Vec<Vec<f64>> {
                 }
             }
 
-            radiuses[x as usize][y as usize] = radius;
+            radiuses[y][x] = radius;
 
             // draw line to nearest
             // let start = map_voronoi_point(center_point, size);
@@ -108,13 +112,17 @@ pub fn draw_circles(
     points: &Vec<Vec<Vector2<f64>>>,
     radiuses: &Vec<Vec<f64>>,
     draw: &Draw,
-    size: f64,
+    width: u32,
+    height: u32,
+    grid_res_x: usize,
+    grid_res_y: usize,
+    cell_size: f64,
 ) {
-    for y in 0..GRID_RES {
-        for x in 0..GRID_RES {
-            let point = points[x as usize][y as usize];
-            let mapped = map_voronoi_point(point, size);
-            let radius = scale_voronoi_value(radiuses[x as usize][y as usize], size) * 2.0;
+    for y in 0..grid_res_y {
+        for x in 0..grid_res_x {
+            let point = points[y][x];
+            let mapped = map_voronoi_point(point, width, height, grid_res_x, grid_res_y);
+            let radius = radiuses[y][x] as f32 * cell_size as f32 * 2.0;
 
             let x = (point.x % 1.0).abs() * 255.0;
             let y = (point.y % 1.0).abs() * 255.0;
@@ -128,13 +136,17 @@ pub fn draw_circles(
     }
 }
 
-pub fn draw_grid(draw: &Draw, size: f64) {
-    let res = GRID_RES as f64;
-
+pub fn draw_grid(draw: &Draw, width: u32, height: u32, grid_res_x: usize, grid_res_y: usize) {
     // draw horizontal lines
-    for y in 1..GRID_RES {
-        let start = map_voronoi_point(pt2(0.0, y as f64), size);
-        let end = map_voronoi_point(pt2(res, y as f64), size);
+    for y in 1..grid_res_y {
+        let start = map_voronoi_point(pt2(0.0, y as f64), width, height, grid_res_x, grid_res_y);
+        let end = map_voronoi_point(
+            pt2(grid_res_x as f64, y as f64),
+            width,
+            height,
+            grid_res_x,
+            grid_res_y,
+        );
         draw.line()
             .start(start)
             .end(end)
@@ -143,9 +155,15 @@ pub fn draw_grid(draw: &Draw, size: f64) {
     }
 
     // draw vertical lines
-    for x in 1..GRID_RES {
-        let start = map_voronoi_point(pt2(x as f64, 0.0), size);
-        let end = map_voronoi_point(pt2(x as f64, res), size);
+    for x in 1..grid_res_x {
+        let start = map_voronoi_point(pt2(x as f64, 0.0), width, height, grid_res_x, grid_res_y);
+        let end = map_voronoi_point(
+            pt2(x as f64, grid_res_y as f64),
+            width,
+            height,
+            grid_res_x,
+            grid_res_y,
+        );
         draw.line()
             .start(start)
             .end(end)
