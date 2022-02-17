@@ -48,7 +48,7 @@ fn scale_voronoi_value(v: f64, size: f64) -> f32 {
 }
 
 // compute the maximum radius for each point such that the circle is contained in the cell
-pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>, draw: &Draw, size: f64) -> Vec<Vec<f64>> {
+pub fn get_radiuses(points: &Vec<Vec<Vector2<f64>>>) -> Vec<Vec<f64>> {
     let mut radiuses = vec![vec![0.0 as f64; GRID_RES]; GRID_RES];
 
     for y in 0..GRID_RES {
